@@ -1,0 +1,240 @@
+import React, { useState } from 'react';
+import { Shield, KeyRound, Mail, ArrowRight, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+
+export default function LoginPage({ onLogin, onNotify }) {
+  const [email, setEmail] = useState('operator@sutra.gov.in');
+  const [password, setPassword] = useState('••••••••••••');
+  const [loading, setLoading] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onLogin({
+        id: "usr-operator-01",
+        name: "Dr. Rajeshwar Sharma",
+        email: email || "operator@sutra.gov.in",
+        role: "Senior Communications Specialist",
+        department: "Department of Administrative Coordination & Public Information",
+        designation: "Authorized Public Information Officer",
+        employee_id: "GOV-IN-7842",
+        clearance_level: "Level 3 - Public Broadcast & Circulars"
+      });
+      onNotify?.("Authorized session established successfully", "success");
+    }, 500);
+  };
+
+  const handleGoogleLogin = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onLogin({
+        id: "usr-google-auth",
+        name: "Rajeshwar Sharma",
+        email: "rajeshwar.sharma@gov-sutra.auth",
+        role: "Operator via SSO",
+        department: "Department of Administrative Coordination",
+        designation: "Information Officer",
+        employee_id: "GOV-SSO-912"
+      });
+      onNotify?.("Authenticated via Institutional SSO", "success");
+    }, 500);
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      background: 'var(--bg-app)',
+      color: 'var(--text-main)',
+      transition: 'background var(--transition-fast)',
+      position: 'relative'
+    }}>
+      
+      {/* Animated Background Elements */}
+      <div className="login-bg">
+        <div className="login-grid-pattern"></div>
+        <div className="login-gradient-orb login-gradient-orb-1"></div>
+        <div className="login-gradient-orb login-gradient-orb-2"></div>
+      </div>
+
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        position: 'relative',
+        zIndex: 1
+      }}>
+        <div className="login-card">
+          {/* Brand Header */}
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <div className="login-logo-wrap" style={{
+              width: '54px',
+              height: '54px',
+              margin: '0 auto 16px',
+              background: 'var(--bg-surface-alt)',
+              border: '2px solid var(--accent-500)',
+              borderRadius: 'var(--radius-xl)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <circle cx="6" cy="12" r="2.5" fill="var(--text-main)"/>
+                <circle cx="12" cy="6" r="2.5" fill="var(--accent-500)"/>
+                <circle cx="18" cy="12" r="2.5" fill="var(--green-500)"/>
+                <circle cx="12" cy="18" r="2.5" fill="var(--accent-600)"/>
+                <path d="M6 12L12 6L18 12L12 18Z" stroke="var(--border-strong)" strokeWidth="1.5"/>
+                <circle cx="12" cy="12" r="1.5" fill="var(--text-main)"/>
+              </svg>
+            </div>
+
+            <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '1.35rem', fontWeight: 700, letterSpacing: '0.18em', margin: 0, color: 'var(--text-main)', textTransform: 'uppercase' }}>
+              S.U.T.R.A.
+            </h1>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--accent-500)', marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>
+              Government Information Transformation System
+            </p>
+            
+            <div className="login-system-status">
+              <div className="status-pulse"></div>
+              All Systems Operational
+            </div>
+          </div>
+
+          {/* Institutional Trust Notice */}
+          <div style={{
+            background: 'var(--accent-50)',
+            border: '1px solid var(--accent-300)',
+            borderRadius: 'var(--radius-md)',
+            padding: '10px 14px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontSize: '0.785rem',
+            color: 'var(--accent-700)'
+          }}>
+            <Shield size={18} style={{ flexShrink: 0, color: 'var(--accent-600)' }} />
+            <div>
+              <strong>Authorized Access Only.</strong> Activity is authenticated and monitored under administrative audit guidelines.
+            </div>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label className="form-label" style={{ color: 'var(--text-main)' }}>
+                <span>Official Email / Operator ID</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+                <input
+                  type="email"
+                  className="form-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    paddingLeft: '38px',
+                    background: 'var(--bg-input)',
+                    borderColor: 'var(--border-default)',
+                    color: 'var(--text-main)'
+                  }}
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label className="form-label" style={{ color: 'var(--text-main)', margin: 0 }}>Security Password</label>
+                <a 
+                  href="#forgot" 
+                  onClick={(e) => { e.preventDefault(); onNotify?.("Password reset protocol dispatched to registered official mobile number", "info"); }}
+                  style={{ fontSize: '0.75rem', color: 'var(--accent-600)', textDecoration: 'none' }}
+                >
+                  Forgot Password?
+                </a>
+              </div>
+              <div style={{ position: 'relative' }}>
+                <KeyRound size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+                <input
+                  type="password"
+                  className="form-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    paddingLeft: '38px',
+                    background: 'var(--bg-input)',
+                    borderColor: 'var(--border-default)',
+                    color: 'var(--text-main)'
+                  }}
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="btn btn-primary btn-block"
+              disabled={loading}
+              style={{
+                marginTop: '8px',
+                padding: '12px',
+                fontSize: '0.95rem'
+              }}
+            >
+              {loading ? "Authenticating Session..." : "Secure Operator Login"} <ArrowRight size={16} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', margin: '8px 0', gap: '10px' }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }} />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>OR</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--border-light)' }} />
+            </div>
+
+            <button
+              type="button"
+              className="btn btn-secondary btn-block"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              style={{
+                borderColor: 'var(--border-default)',
+                color: 'var(--text-main)'
+              }}
+            >
+              Sign in with Government SSO
+            </button>
+          </form>
+
+          {/* What is S.U.T.R.A. Expandable Section */}
+          <div className="login-expand-section">
+            <button 
+              type="button"
+              className="login-expand-trigger"
+              onClick={() => setShowInfo(!showInfo)}
+            >
+              <span>What is S.U.T.R.A.?</span>
+              {showInfo ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+            
+            {showInfo && (
+              <div className="login-expand-content">
+                S.U.T.R.A. (Source → Understanding → Transformation → Response → Artifact) is an AI-powered institutional system designed to instantly transform official directives, disaster alerts, and policy circulars into audience-calibrated outputs across 7 communication channels with zero informational drift.
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.65rem', color: 'var(--text-dim)', lineHeight: 1.5 }}>
+            This is not an official government website. S.U.T.R.A. is a prototype communication transformation tool for authorized operators only.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
