@@ -93,9 +93,55 @@ export function saveStoredSettings(settings) {
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
 }
 
-export function resetDemoData() {
+/**
+ * Returns true when Firebase Firestore is live (configured + not using
+ * placeholder credentials). Downstream code can use this to decide whether
+ * to read from Firestore or fall back to localStorage.
+ */
+export function isFirestoreActive() {
+  try {
+    // Lazily import so this module stays free of top-level side effects
+    const { isFirebaseConfigured } = require('./firebase');
+    return !!isFirebaseConfigured;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Reset demo data.
+ * - Always resets localStorage to sample data.
+ * - When Firestore is active, also writes sample projects to Firestore
+ *   under a "__demo__" owner so they appear in the UI immediately.
+ *   (Firestore writes are fire-and-forget — errors are swallowed to
+ *    preserve the localStorage fallback UX.)
+ */
+export async function resetDemoData() {
   localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(SAMPLE_PROJECTS));
   localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(DEFAULT_SETTINGS));
   localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(DEFAULT_USER));
+
+  if (isFirestoreActive()) {
+    try {
+      const { firestore } = await import('./firebase');
+      const { collection, writeBatch, doc, serverTimestamp } = await import('firebase/firestore');
+      const batch = writeBatch(firestore);
+      SAMPLE_PROJECTS.forEach((project) => {
+        const ref = doc(collection(firestore, 'projects'), project.id);
+        batch.set(ref, {
+          ...project,
+          ownerId:   '__demo__',
+          updatedAt: serverTimestamp(),
+        }, { merge: true });
+      });
+      await batch.commit();
+      console.info('[S.U.T.R.A.] Demo data synced to Firestore.');
+    } catch (firestoreErr) {
+      // Non-fatal — localStorage data is already set above
+      console.warn('[S.U.T.R.A.] Could not sync demo data to Firestore:', firestoreErr.message);
+    }
+  }
+
   return SAMPLE_PROJECTS;
 }
+

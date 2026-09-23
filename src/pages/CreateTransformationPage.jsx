@@ -16,7 +16,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import PipelineStepper from '../components/PipelineStepper';
-import { runMockTransformation } from '../services/transformationService';
+import { generateProject } from '../services/api';
 import { SAMPLE_PROJECTS } from '../services/sampleData';
 
 const FORMAT_OPTIONS = [
@@ -133,7 +133,10 @@ export default function CreateTransformationPage({ onTransformationComplete, onN
     setStepperState({ currentStep: 1, isComplete: false });
 
     try {
-      const generatedProject = await runMockTransformation({
+      // generateProject handles both the real API path and demo fallback internally.
+      // In demo mode it calls runMockTransformation and drives the stepper via onProgress.
+      // In configured mode it advances the stepper through defined phases while waiting.
+      const generatedProject = await generateProject({
         sourceText: contentToProcess,
         sourceName: uploadedFiles[0]?.name || (urlInput ? 'Web_Resource.html' : 'Official_Source_Circular.txt'),
         sourceType: activeTab,
@@ -145,6 +148,7 @@ export default function CreateTransformationPage({ onTransformationComplete, onN
           detail_level: detailLevel,
           objective
         },
+        // onProgress drives the stepper; used by demo mode and partially by real mode
         onProgress: (progress) => {
           setStepperState(progress);
         }
@@ -157,10 +161,12 @@ export default function CreateTransformationPage({ onTransformationComplete, onN
       }, 400);
 
     } catch (err) {
-      console.error(err);
+      console.error('[Generate]', err);
       setIsGenerating(false);
-      setGenerationError("Unable to process this source. Please check the format and try again.");
-      onNotify?.("Transformation pipeline encountered an issue. Please retry.", "error");
+      // Surface specific backend errors through the existing error card
+      const msg = err.message || "Unable to process this source. Please check the format and try again.";
+      setGenerationError(msg);
+      onNotify?.(msg, "error");
     }
   };
 

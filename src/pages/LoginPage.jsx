@@ -1,46 +1,103 @@
 import React, { useState } from 'react';
 import { Shield, KeyRound, Mail, ArrowRight, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 
-export default function LoginPage({ onLogin, onNotify }) {
+// Firebase error codes → human-readable messages
+const FIREBASE_ERROR_MESSAGES = {
+  'auth/user-not-found':     'No account found for this email address.',
+  'auth/wrong-password':     'Incorrect password. Please retry or reset below.',
+  'auth/invalid-credential': 'Incorrect email or password. Please check and retry.',
+  'auth/invalid-email':      'Please enter a valid official email address.',
+  'auth/too-many-requests':  'Account temporarily locked due to multiple failed attempts. Try again later.',
+  'auth/network-request-failed': 'Network error — check your connection and retry.',
+  'auth/popup-closed-by-user':   'Sign-in window was closed. Please try again.',
+};
+
+function getAuthErrorMessage(err) {
+  return FIREBASE_ERROR_MESSAGES[err?.code] || err?.message || 'Authentication failed. Please retry.';
+}
+
+export default function LoginPage({ onLogin, onNotify, signIn, signInWithGoogle }) {
   const [email, setEmail] = useState('operator@sutra.gov.in');
-  const [password, setPassword] = useState('••••••••••••');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
+    try {
+      if (signIn) {
+        // Real Firebase auth path
+        const cred = await signIn(email, password);
+        const firebaseUser = cred?.user;
+        // Build rich profile — Firebase gives us uid/email/displayName,
+        // the rest comes from Firestore on next load or falls back to defaults
+        await onLogin({
+          id:           firebaseUser?.uid || 'usr-operator-01',
+          name:         firebaseUser?.displayName || 'Dr. Rajeshwar Sharma',
+          email:        firebaseUser?.email || email,
+          role:         'Senior Communications Specialist',
+          department:   'Department of Administrative Coordination & Public Information',
+          designation:  'Authorized Public Information Officer',
+          employee_id:  'GOV-IN-7842',
+          clearance_level: 'Level 3 - Public Broadcast & Circulars',
+        });
+        onNotify?.('Authorized session established successfully', 'success');
+      } else {
+        // Demo fallback (signIn prop not provided)
+        await onLogin({
+          id: 'usr-operator-01',
+          name: 'Dr. Rajeshwar Sharma',
+          email: email || 'operator@sutra.gov.in',
+          role: 'Senior Communications Specialist',
+          department: 'Department of Administrative Coordination & Public Information',
+          designation: 'Authorized Public Information Officer',
+          employee_id: 'GOV-IN-7842',
+          clearance_level: 'Level 3 - Public Broadcast & Circulars',
+        });
+        onNotify?.('Authorized session established successfully', 'success');
+      }
+    } catch (err) {
+      onNotify?.(getAuthErrorMessage(err), 'error');
+    } finally {
       setLoading(false);
-      onLogin({
-        id: "usr-operator-01",
-        name: "Dr. Rajeshwar Sharma",
-        email: email || "operator@sutra.gov.in",
-        role: "Senior Communications Specialist",
-        department: "Department of Administrative Coordination & Public Information",
-        designation: "Authorized Public Information Officer",
-        employee_id: "GOV-IN-7842",
-        clearance_level: "Level 3 - Public Broadcast & Circulars"
-      });
-      onNotify?.("Authorized session established successfully", "success");
-    }, 500);
+    }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      if (signInWithGoogle) {
+        const cred = await signInWithGoogle();
+        const firebaseUser = cred?.user;
+        await onLogin({
+          id:          firebaseUser?.uid || 'usr-google-auth',
+          name:        firebaseUser?.displayName || 'Rajeshwar Sharma',
+          email:       firebaseUser?.email || 'rajeshwar.sharma@gov-sutra.auth',
+          role:        'Operator via SSO',
+          department:  'Department of Administrative Coordination',
+          designation: 'Information Officer',
+          employee_id: 'GOV-SSO-912',
+        });
+        onNotify?.('Authenticated via Institutional SSO', 'success');
+      } else {
+        // Demo fallback
+        await onLogin({
+          id: 'usr-google-auth',
+          name: 'Rajeshwar Sharma',
+          email: 'rajeshwar.sharma@gov-sutra.auth',
+          role: 'Operator via SSO',
+          department: 'Department of Administrative Coordination',
+          designation: 'Information Officer',
+          employee_id: 'GOV-SSO-912',
+        });
+        onNotify?.('Authenticated via Institutional SSO', 'success');
+      }
+    } catch (err) {
+      onNotify?.(getAuthErrorMessage(err), 'error');
+    } finally {
       setLoading(false);
-      onLogin({
-        id: "usr-google-auth",
-        name: "Rajeshwar Sharma",
-        email: "rajeshwar.sharma@gov-sutra.auth",
-        role: "Operator via SSO",
-        department: "Department of Administrative Coordination",
-        designation: "Information Officer",
-        employee_id: "GOV-SSO-912"
-      });
-      onNotify?.("Authenticated via Institutional SSO", "success");
-    }, 500);
+    }
   };
 
   return (

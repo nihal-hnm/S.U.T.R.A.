@@ -33,6 +33,13 @@ build/
 .env.local
 *.env.*.local
 
+# Cloud Functions secrets
+functions/.env
+functions/.env.local
+
+# Cloud Functions dependencies (install separately in functions/)
+functions/node_modules/
+
 # Editor & IDE files
 .vscode/*
 !.vscode/extensions.json

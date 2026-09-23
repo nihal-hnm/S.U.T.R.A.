@@ -22,6 +22,7 @@ import CommentThread from '../components/CommentThread';
 import VersionBadge from '../components/VersionBadge';
 import Modal from '../components/Modal';
 import { downloadAsJSON } from '../utils/exportUtils';
+import { regenerateOutput } from '../services/api';
 
 const FORMAT_CONFIG = {
   executive_summary: { label: 'Executive Summary', icon: FileText },
@@ -94,18 +95,27 @@ export default function GeneratedOutputsPage({
     onNotify?.("Full project transformation bundle exported as JSON", "success");
   };
 
-  const handleRegenerate = () => {
+  const handleRegenerate = async () => {
+    if (!project?.id) return;
     setIsRegenerating(true);
-    setTimeout(() => {
-      setIsRegenerating(false);
+    try {
+      await regenerateOutput(project.id, {
+        tone: regenTone,
+        format: activeTab,
+        scope: regenScope,
+      });
       setShowRegenModal(false);
       onNotify?.(
-        regenScope === 'all' 
-          ? "All communication artifacts regenerated with updated parameters." 
+        regenScope === 'all'
+          ? 'All communication artifacts regenerated with updated parameters.'
           : `Regenerated ${FORMAT_CONFIG[activeTab]?.label || 'output'} with ${regenTone} tone.`,
-        "success"
+        'success'
       );
-    }, 700);
+    } catch (err) {
+      onNotify?.(err.message || 'Regeneration failed. Please try again.', 'error');
+    } finally {
+      setIsRegenerating(false);
+    }
   };
 
   return (

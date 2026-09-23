@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Helper Functions ────────────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isValidFileSize() {
+      // Maximum upload size: 25 MB
+      return request.resource.size <= 25 * 1024 * 1024;
+    }
+
+    function isValidFileType() {
+      return request.resource.contentType.matches('application/pdf')
+          || request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+          || request.resource.contentType.matches('text/plain')
+          || request.resource.contentType.matches('image/jpeg')
+          || request.resource.contentType.matches('image/png')
+          || request.resource.contentType.matches('image/webp')
+          || request.resource.contentType.matches('video/mp4');
+    }
+
+    // ── User-scoped uploads ─────────────────────────────────────────────────
+    // All user files live under /users/{uid}/...
+    // Users can only read/write their own namespace.
+    match /users/{uid}/{allPaths=**} {
+      allow read:   if isAuthenticated() && isOwner(uid);
+      allow create: if isAuthenticated()
+                    && isOwner(uid)
+                    && isValidFileSize()
+                    && isValidFileType();
+      allow update: if isAuthenticated() && isOwner(uid) && isValidFileSize();
+      allow delete: if isAuthenticated() && isOwner(uid);
+    }
+
+    // ── Public read-only assets (logos, templates) ───────────────────────────
+    match /public/{allPaths=**} {
+      allow read:  if true;
+      allow write: if false; // Admin SDK only
+    }
+
+    // ── Deny everything else ─────────────────────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

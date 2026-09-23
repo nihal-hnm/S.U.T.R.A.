@@ -1,32 +1,38 @@
 /**
- * S.U.T.R.A. Firebase SDK Initialisation Stub
+ * S.U.T.R.A. Firebase SDK Initialisation
  * ─────────────────────────────────────────────
- * This file documents the exact Firebase initialisation sequence
- * required to connect the frontend to production Firestore, Auth,
- * and Storage when credentials are available.
+ * Activates Firebase Auth, Firestore, and Storage when valid credentials
+ * are present in environment variables. When credentials are 'TODO' or
+ * missing, all exports are null and the app falls back to localStorage +
+ * mock data (Phase 2 demo mode) — no crash, no broken UI.
  *
- * STATUS: Stub — all SDK imports are commented out. The app runs
- * entirely on localStorage + mock data until this is wired.
- *
- * TO ACTIVATE:
- *   1. Create a Firebase project at https://console.firebase.google.com
- *   2. Register a Web App and copy the config object below
- *   3. Enable Authentication (Email/Password + Google Sign-In)
- *   4. Create a Firestore database in production mode
- *   5. Enable Firebase Storage
- *   6. Un-comment ALL lines in this file
- *   7. Add each firebaseConfig value to your .env as VITE_FIREBASE_*
+ * ENVIRONMENT VARIABLES (copy .env.example → .env.local):
+ *   VITE_FIREBASE_API_KEY
+ *   VITE_FIREBASE_AUTH_DOMAIN
+ *   VITE_FIREBASE_PROJECT_ID
+ *   VITE_FIREBASE_STORAGE_BUCKET
+ *   VITE_FIREBASE_MESSAGING_SENDER_ID
+ *   VITE_FIREBASE_APP_ID
+ *   VITE_USE_EMULATOR=true   (optional — connect to local Firebase Emulator Suite)
  */
 
-// ── SDK Imports (un-comment when activating) ────────────────────────────────
-// import { initializeApp, getApps, getApp } from 'firebase/app';
-// import { getAuth, connectAuthEmulator } from 'firebase/auth';
-// import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-// import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+  getAuth,
+  connectAuthEmulator,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+} from 'firebase/firestore';
+import {
+  getStorage,
+  connectStorageEmulator,
+} from 'firebase/storage';
 
 // ── Firebase Configuration ───────────────────────────────────────────────────
-// Replace each value with your project's actual credentials from
-// Firebase Console → Project Settings → Your Apps → SDK setup
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            || 'TODO',
   authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN        || 'TODO',
@@ -36,53 +42,53 @@ const firebaseConfig = {
   appId:             import.meta.env.VITE_FIREBASE_APP_ID             || 'TODO',
 };
 
-// ── App Initialisation (singleton-safe) ─────────────────────────────────────
-// const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// ── Configured check: all required fields must be present and non-placeholder ─
+const REQUIRED_KEYS = ['apiKey', 'authDomain', 'projectId', 'appId'];
+const _isConfigured = REQUIRED_KEYS.every(
+  (k) => firebaseConfig[k] && firebaseConfig[k] !== 'TODO' && firebaseConfig[k].length > 4
+);
 
-// ── Service Instances ────────────────────────────────────────────────────────
-// export const auth      = getAuth(app);
-// export const firestore = getFirestore(app);
-// export const storage   = getStorage(app);
+export const isFirebaseConfigured = _isConfigured;
 
-// ── Local Emulator Support (development only) ────────────────────────────────
-// if (import.meta.env.DEV) {
-//   connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-//   connectFirestoreEmulator(firestore, 'localhost', 8080);
-//   connectStorageEmulator(storage, 'localhost', 9199);
-// }
+// ── App Initialisation (singleton-safe) ──────────────────────────────────────
+let app = null;
+let auth = null;
+let firestore = null;
+let storage = null;
+let googleProvider = null;
 
-// ── Firestore Collection References ─────────────────────────────────────────
-// import { collection } from 'firebase/firestore';
-// export const projectsCol = collection(firestore, 'projects');
-// export const sourcesCol  = collection(firestore, 'sources');
-// export const usersCol    = collection(firestore, 'users');
+if (_isConfigured) {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  firestore = getFirestore(app);
+  storage = getStorage(app);
+  googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-// ── Exported placeholder so importing this file doesn't crash ────────────────
-// Remove this export block once the real exports above are activated.
-export const _stubFirebaseConfig = firebaseConfig;
+  // ── Local Emulator Support ─────────────────────────────────────────────────
+  // Set VITE_USE_EMULATOR=true in .env.local to use Firebase Local Emulator Suite
+  // Run: firebase emulators:start --only auth,firestore,functions,storage
+  if (import.meta.env.VITE_USE_EMULATOR === 'true') {
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    connectFirestoreEmulator(firestore, 'localhost', 8080);
+    connectStorageEmulator(storage, 'localhost', 9199);
+    console.info('[S.U.T.R.A.] Firebase Emulator Suite connected.');
+  }
+} else {
+  console.info(
+    '[S.U.T.R.A.] Firebase not configured — running in demo/localStorage mode. ' +
+    'Copy .env.example to .env.local and fill in your Firebase project credentials to activate.'
+  );
+}
 
-/**
- * Firestore Data Schemas (reference)
- *
- * /projects/{projectId}
- * ├── id:               string
- * ├── operatorUid:      string          (Firebase Auth UID)
- * ├── title:            string
- * ├── source_name:      string
- * ├── source_format:    string
- * ├── source_text:      string
- * ├── word_count:       number
- * ├── config:           { tone, target_audience, language, detail_level, objective }
- * ├── selected_formats: string[]
- * ├── analysis:         { main_topic, summary, key_facts[], key_messages[], entities, ... }
- * ├── outputs:          { executive_summary, government_advisory, linkedin_post, ... }
- * ├── status:           'Generating' | 'Verified' | 'Archived'
- * └── created_at:       Timestamp
- *
- * /users/{uid}
- * ├── name:             string
- * ├── email:            string
- * ├── organization:     string
- * ├── role:             string
- * └── preferences:      { theme, language, tone, defaultAudience }
- */
+export { app, auth, firestore, storage, googleProvider, onAuthStateChanged };
+
+// ── Firestore Collection Name Constants ──────────────────────────────────────
+export const COLLECTIONS = {
+  USERS:              'users',
+  PROJECTS:           'projects',
+  SOURCES:            'sources',
+  ANALYSES:           'analyses',
+  OUTPUTS:            'outputs',
+  GENERATION_HISTORY: 'generation_history',
+};

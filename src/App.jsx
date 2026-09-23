@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import ToastContainer from './components/Toast';
@@ -17,32 +17,76 @@ import HelpCenterPage from './pages/HelpCenterPage';
 import OnboardingOverlay from './components/OnboardingOverlay';
 import BottomNav from './components/BottomNav';
 
+// Auth context & hooks
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { useProjects } from './hooks/useProjects';
+
 // Services
-import { 
-  getStoredProjects, 
-  saveStoredProjects, 
-  getStoredUser, 
+import {
+  getStoredUser,
   saveStoredUser,
+  getStoredProjects,
+  saveStoredProjects,
   getStoredSettings,
-  saveStoredSettings
+  saveStoredSettings,
 } from './services/store';
 
-export default function App() {
-  // State Initialization
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Inner app â€” must be inside AuthProvider to use useAuth
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function AppInner() {
+  const { user, loading: authLoading, signIn, signInWithGoogle, signOut, isFirebaseConfigured } = useAuth();
+
+  // â”€â”€ Session state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // currentUser merges Firebase user (uid, email) with the richer profile
+  // stored in Firestore / localStorage (name, department, role, etc.)
   const [currentUser, setCurrentUser] = useState(getStoredUser);
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // Default true for seamless evaluation
-  const [settings, setSettings] = useState(getStoredSettings);
-  const [projects, setProjects] = useState(getStoredProjects);
-  const [activeProject, setActiveProject] = useState(() => projects[0] || null);
-  const [currentPage, setCurrentPage] = useState('dashboard');
-  const [pageParams, setPageParams] = useState({});
-  const [theme, setTheme] = useState(settings?.theme || 'dark');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [settings, setSettings]       = useState(getStoredSettings);
+  const [activeProject, setActiveProject] = useState(null);
+  const [currentPage, setCurrentPage]     = useState('dashboard');
+  const [pageParams, setPageParams]       = useState({});
+  const [theme, setTheme]                 = useState(() => getStoredSettings()?.theme || 'dark');
+  const [sidebarCollapsed, setSidebarCollapsed]   = useState(false);
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
-  const [toasts, setToasts] = useState([]);
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    return !localStorage.getItem('sutra_onboarded');
-  });
+  const [toasts, setToasts]   = useState([]);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem('sutra_onboarded')
+  );
+
+  // â”€â”€ Projects â€” live Firestore or localStorage fallback â”€â”€â”€â”€â”€â”€â”€â”€
+  const uid = user?.uid ?? null;
+  const { projects: firestoreProjects, loading: projectsLoading } = useProjects(uid);
+
+  // Merge: Firestore projects when available, else stored list
+  const [localProjects, setLocalProjects] = useState(getStoredProjects);
+  const projects = isFirebaseConfigured && uid && !projectsLoading
+    ? firestoreProjects
+    : localProjects;
+
+  // Keep activeProject in sync when projects list changes
+  useEffect(() => {
+    if (!activeProject && projects.length > 0) {
+      setActiveProject(projects[0]);
+    }
+  }, [projects, activeProject]);
+
+  // â”€â”€ Sync theme to DOM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  // â”€â”€ Sync Firebase user â†’ currentUser profile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  useEffect(() => {
+    if (user && isFirebaseConfigured) {
+      // Merge Firebase auth user into the richer profile object
+      setCurrentUser((prev) => ({
+        ...prev,
+        id: user.uid,
+        email: user.email || prev?.email,
+        name: user.displayName || prev?.name,
+      }));
+    }
+  }, [user, isFirebaseConfigured]);
 
   const toggleSidebar = () => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
@@ -52,81 +96,84 @@ export default function App() {
     }
   };
 
-  // Synchronize theme attribute to DOM root
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  // Toast Notification Helper
-  const showNotification = (message, type = 'info') => {
+  // â”€â”€ Toast Notification Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const showNotification = useCallback((message, type = 'info') => {
     const id = Date.now().toString();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 4000);
-  };
+  }, []);
 
-  const dismissToast = (id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  };
+  const dismissToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
-  // Theme Toggle Handler
+  // â”€â”€ Theme Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     const updated = { ...settings, theme: newTheme };
     setSettings(updated);
     saveStoredSettings(updated);
-    showNotification(`Switched to ${newTheme === 'dark' ? 'Rich Zinc Dark' : 'Institutional Light'} Theme`, "info");
+    showNotification(
+      `Switched to ${newTheme === 'dark' ? 'Rich Zinc Dark' : 'Institutional Light'} Theme`,
+      'info'
+    );
   };
 
-  // Navigation Controller
+  // â”€â”€ Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleNavigate = (page, params = {}) => {
     setCurrentPage(page);
     setPageParams(params);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Auth Handlers
-  const handleLogin = (user) => {
-    setCurrentUser(user);
-    saveStoredUser(user);
-    setIsAuthenticated(true);
+  // â”€â”€ Auth Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /**
+   * Called by LoginPage after successful credential entry.
+   * In demo mode, profileData contains the hardcoded mock user.
+   * In Firebase mode, profileData is ignored (auth state comes via onAuthStateChanged).
+   */
+  const handleLogin = useCallback(async (profileData) => {
+    // Persist the richer profile object (name, role, department, etc.)
+    if (profileData) {
+      setCurrentUser(profileData);
+      saveStoredUser(profileData);
+    }
     setCurrentPage('dashboard');
-  };
+  }, []);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  const handleLogout = useCallback(async () => {
+    await signOut();
     setCurrentPage('login');
-    showNotification("Operator session logged out safely", "info");
-  };
+    setActiveProject(null);
+    showNotification('Operator session logged out safely', 'info');
+  }, [signOut, showNotification]);
 
-  // Project Transformation Completion
+  // â”€â”€ Transformation Complete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleTransformationComplete = (newProject) => {
-    const updated = [newProject, ...projects];
-    setProjects(updated);
-    saveStoredProjects(updated);
+    if (!isFirebaseConfigured) {
+      // Demo mode: update local state + localStorage
+      const updated = [newProject, ...localProjects];
+      setLocalProjects(updated);
+      saveStoredProjects(updated);
+    }
+    // In Firebase mode, the Firestore onSnapshot listener auto-refreshes the list
     setActiveProject(newProject);
     setCurrentPage('outputs');
   };
 
-  // Project Selection Handler
-  const handleSelectProject = (proj) => {
-    setActiveProject(proj);
-  };
+  const handleSelectProject = (proj) => setActiveProject(proj);
 
-  // Project Delete Handler
   const handleDeleteProject = (projectId) => {
-    const updated = projects.filter(p => p.id !== projectId);
-    setProjects(updated);
-    saveStoredProjects(updated);
-    if (activeProject?.id === projectId) {
-      setActiveProject(updated[0] || null);
+    if (!isFirebaseConfigured) {
+      const updated = localProjects.filter(p => p.id !== projectId);
+      setLocalProjects(updated);
+      saveStoredProjects(updated);
     }
-    showNotification("Project record removed from local archive", "info");
+    if (activeProject?.id === projectId) setActiveProject(null);
+    showNotification('Project record removed from archive', 'info');
   };
 
-  // User Settings Update
   const handleUpdateSettings = (newSettings) => {
     setSettings(newSettings);
     saveStoredSettings(newSettings);
@@ -137,11 +184,47 @@ export default function App() {
     saveStoredUser(newUser);
   };
 
-  // If not authenticated or on login page, display Login view
-  if (!isAuthenticated || currentPage === 'login') {
+  // â”€â”€ Auth loading screen (prevents flash of login on cold load) â”€
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-app)',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <div style={{
+          width: '40px', height: '40px',
+          border: '3px solid var(--border-default)',
+          borderTopColor: 'var(--accent-500)',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}>
+          Verifying sessionâ€¦
+        </span>
+      </div>
+    );
+  }
+
+  // â”€â”€ Route guard: unauthenticated â†’ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // In demo mode (Firebase not configured), user is always null from Firebase
+  // but we still allow access if currentPage is not 'login' by letting
+  // LoginPage's demo flow set currentPage to 'dashboard' via handleLogin.
+  const isAuthenticated = isFirebaseConfigured ? !!user : currentPage !== 'login';
+
+  if (!isAuthenticated) {
     return (
       <>
-        <LoginPage onLogin={handleLogin} onNotify={showNotification} />
+        <LoginPage
+          onLogin={handleLogin}
+          onNotify={showNotification}
+          signIn={signIn}
+          signInWithGoogle={signInWithGoogle}
+        />
         <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       </>
     );
@@ -149,10 +232,9 @@ export default function App() {
 
   return (
     <div className="app-shell-root" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-
       <div className={`app-shell ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''}`}>
         {/* Persistent Desktop & Responsive Mobile Sidebar */}
-        <Sidebar 
+        <Sidebar
           currentPage={currentPage}
           onNavigate={handleNavigate}
           activeProject={activeProject}
@@ -166,7 +248,7 @@ export default function App() {
 
         {/* Main Content Viewport */}
         <div className="main-wrapper">
-          <Navbar 
+          <Navbar
             currentUser={currentUser}
             theme={theme}
             onToggleTheme={toggleTheme}
@@ -178,7 +260,7 @@ export default function App() {
 
           <main id="main-content" role="main" style={{ flex: 1 }}>
             {currentPage === 'dashboard' && (
-              <DashboardPage 
+              <DashboardPage
                 projects={projects}
                 onNavigate={handleNavigate}
                 onSelectProject={handleSelectProject}
@@ -187,21 +269,21 @@ export default function App() {
             )}
 
             {currentPage === 'create' && (
-              <CreateTransformationPage 
+              <CreateTransformationPage
                 onTransformationComplete={handleTransformationComplete}
                 onNotify={showNotification}
               />
             )}
 
             {currentPage === 'analysis' && (
-              <SourceAnalysisPage 
+              <SourceAnalysisPage
                 project={activeProject}
                 onNavigate={handleNavigate}
               />
             )}
 
             {currentPage === 'outputs' && (
-              <GeneratedOutputsPage 
+              <GeneratedOutputsPage
                 project={activeProject}
                 onNavigate={handleNavigate}
                 onNotify={showNotification}
@@ -209,7 +291,7 @@ export default function App() {
             )}
 
             {currentPage === 'history' && (
-              <ProjectHistoryPage 
+              <ProjectHistoryPage
                 projects={projects}
                 onSelectProject={handleSelectProject}
                 onNavigate={handleNavigate}
@@ -219,7 +301,7 @@ export default function App() {
             )}
 
             {currentPage === 'project-details' && (
-              <ProjectDetailsPage 
+              <ProjectDetailsPage
                 project={projects.find(p => p.id === pageParams.projectId) || activeProject}
                 onNavigate={handleNavigate}
                 onNotify={showNotification}
@@ -227,7 +309,7 @@ export default function App() {
             )}
 
             {currentPage === 'settings' && (
-              <SettingsPage 
+              <SettingsPage
                 settings={settings}
                 onUpdateSettings={handleUpdateSettings}
                 currentUser={currentUser}
@@ -239,7 +321,7 @@ export default function App() {
             )}
 
             {currentPage === 'profile' && (
-              <ProfilePage 
+              <ProfilePage
                 currentUser={currentUser}
                 projects={projects}
                 onNavigate={handleNavigate}
@@ -247,9 +329,7 @@ export default function App() {
             )}
 
             {currentPage === 'help' && (
-              <HelpCenterPage 
-                onNavigate={handleNavigate}
-              />
+              <HelpCenterPage onNavigate={handleNavigate} />
             )}
           </main>
         </div>
@@ -268,3 +348,15 @@ export default function App() {
     </div>
   );
 }
+
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Root export â€” wraps AppInner in AuthProvider
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
+  );
+}
+
