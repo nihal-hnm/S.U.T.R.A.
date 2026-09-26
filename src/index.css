@@ -13,26 +13,44 @@
   outline-color: var(--accent-400);
 }
 
-/* Scrollbar Customization */
+/* ═══════════════ Scrollbar — Cosmic styled ═══════════════ */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-app);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-default);
+  background: rgba(124, 92, 252, 0.2);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--border-strong);
+  background: rgba(124, 92, 252, 0.35);
 }
 
-/* Utility Classes */
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(107, 79, 224, 0.15);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 79, 224, 0.3);
+}
+
+/* ═══════════════ Selection ═══════════════ */
+::selection {
+  background: rgba(124, 92, 252, 0.25);
+  color: var(--text-main);
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(107, 79, 224, 0.2);
+}
+
+/* ═══════════════ Utility Classes ═══════════════ */
 .flex { display: flex; }
 .flex-col { display: flex; flex-direction: column; }
 .items-center { align-items: center; }
@@ -51,3 +69,11 @@
 .w-full { width: 100%; }
 .mt-4 { margin-top: 16px; }
 .mb-4 { margin-bottom: 16px; }
+
+/* ═══════════════ Gradient Text Utility ═══════════════ */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-400), var(--green-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

@@ -60,12 +60,12 @@ export default function Navbar({
           >
             <div className="brand-icon">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="6" cy="12" r="2.5" fill="var(--text-main)"/>
-                <circle cx="12" cy="6" r="2.5" fill="var(--accent-500)"/>
-                <circle cx="18" cy="12" r="2.5" fill="var(--green-500)"/>
-                <circle cx="12" cy="18" r="2.5" fill="var(--accent-600)"/>
-                <path d="M6 12L12 6L18 12L12 18Z" stroke="var(--border-strong)" strokeWidth="1.5"/>
-                <circle cx="12" cy="12" r="1.5" fill="var(--text-main)"/>
+                <circle cx="6" cy="12" r="2.5" fill="rgba(255,255,255,0.9)"/>
+                <circle cx="12" cy="6" r="2.5" fill="#FFB94D"/>
+                <circle cx="18" cy="12" r="2.5" fill="#34D399"/>
+                <circle cx="12" cy="18" r="2.5" fill="rgba(255,255,255,0.6)"/>
+                <path d="M6 12L12 6L18 12L12 18Z" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
+                <circle cx="12" cy="12" r="1.5" fill="#FFFFFF"/>
               </svg>
             </div>
             <div className="brand-text">

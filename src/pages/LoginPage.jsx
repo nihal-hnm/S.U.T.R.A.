@@ -131,30 +131,31 @@ export default function LoginPage({ onLogin, onNotify, signIn, signInWithGoogle 
           {/* Brand Header */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <div className="login-logo-wrap" style={{
-              width: '54px',
-              height: '54px',
+              width: '60px',
+              height: '60px',
               margin: '0 auto 16px',
-              background: 'var(--bg-surface-alt)',
-              border: '2px solid var(--accent-500)',
+              background: 'linear-gradient(135deg, #7C5CFC 0%, #5B3FBF 100%)',
+              border: 'none',
               borderRadius: 'var(--radius-xl)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              boxShadow: '0 0 24px rgba(124, 92, 252, 0.35), 0 4px 16px rgba(124, 92, 252, 0.2)'
             }}>
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <circle cx="6" cy="12" r="2.5" fill="var(--text-main)"/>
-                <circle cx="12" cy="6" r="2.5" fill="var(--accent-500)"/>
-                <circle cx="18" cy="12" r="2.5" fill="var(--green-500)"/>
-                <circle cx="12" cy="18" r="2.5" fill="var(--accent-600)"/>
-                <path d="M6 12L12 6L18 12L12 18Z" stroke="var(--border-strong)" strokeWidth="1.5"/>
-                <circle cx="12" cy="12" r="1.5" fill="var(--text-main)"/>
+                <circle cx="6" cy="12" r="2.5" fill="rgba(255,255,255,0.9)"/>
+                <circle cx="12" cy="6" r="2.5" fill="#FFB94D"/>
+                <circle cx="18" cy="12" r="2.5" fill="#34D399"/>
+                <circle cx="12" cy="18" r="2.5" fill="rgba(255,255,255,0.6)"/>
+                <path d="M6 12L12 6L18 12L12 18Z" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5"/>
+                <circle cx="12" cy="12" r="1.5" fill="#FFFFFF"/>
               </svg>
             </div>
 
-            <h1 style={{ fontFamily: 'var(--font-sans)', fontSize: '1.35rem', fontWeight: 700, letterSpacing: '0.18em', margin: 0, color: 'var(--text-main)', textTransform: 'uppercase' }}>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 700, letterSpacing: '0.18em', margin: 0, color: 'var(--text-main)', textTransform: 'uppercase' }}>
               S.U.T.R.A.
             </h1>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--accent-500)', marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--accent-400)', marginTop: '6px', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 500 }}>
               Government Information Transformation System
             </p>
             
@@ -167,7 +168,7 @@ export default function LoginPage({ onLogin, onNotify, signIn, signInWithGoogle 
           {/* Institutional Trust Notice */}
           <div style={{
             background: 'var(--accent-50)',
-            border: '1px solid var(--accent-300)',
+            border: '1px solid var(--accent-100)',
             borderRadius: 'var(--radius-md)',
             padding: '10px 14px',
             marginBottom: '24px',
@@ -175,9 +176,10 @@ export default function LoginPage({ onLogin, onNotify, signIn, signInWithGoogle 
             alignItems: 'center',
             gap: '10px',
             fontSize: '0.785rem',
-            color: 'var(--accent-700)'
+            color: 'var(--accent-300)',
+            backdropFilter: 'blur(8px)'
           }}>
-            <Shield size={18} style={{ flexShrink: 0, color: 'var(--accent-600)' }} />
+            <Shield size={18} style={{ flexShrink: 0, color: 'var(--accent-400)' }} />
             <div>
               <strong>Authorized Access Only.</strong> Activity is authenticated and monitored under administrative audit guidelines.
             </div>
