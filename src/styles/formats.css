@@ -1,4 +1,4 @@
-/* S.U.T.R.A. Format-Specific Layouts (Royal Azure & Emerald Highlights) */
+/* S.U.T.R.A. Format-Specific Layouts (Institutional Editorial — Federal Navy) */
 
 /* Shared Output Header & Toolbar */
 .output-card-wrapper {
@@ -119,20 +119,15 @@
 
 /* 2. Government Advisory Official Document Layout */
 .advisory-doc-container {
-  background: #000000;
-  color: #FFFFFF;
+  background: var(--bg-surface);
+  color: var(--text-main);
   border: 1px solid var(--border-default);
+  border-top: 3px solid var(--accent-600);
   box-shadow: var(--shadow-md);
   padding: 48px;
   max-width: 860px;
   margin: 0 auto;
-  font-family: 'Times New Roman', Times, serif, var(--font-sans);
-}
-
-[data-theme="light"] .advisory-doc-container {
-  background: #FFFFFF;
-  color: #000000;
-  border-color: #CCCCCC;
+  font-family: var(--font-serif);
 }
 
 .advisory-header-mast {
@@ -173,8 +168,8 @@
   padding: 8px;
   background: var(--bg-surface-alt);
   letter-spacing: 0.03em;
-  border-left: 4px solid var(--accent-500);
-  border-right: 4px solid var(--green-500);
+  border-left: 4px solid var(--accent-600);
+  border-right: 4px solid var(--accent-600);
 }
 
 .advisory-section {

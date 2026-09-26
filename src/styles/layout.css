@@ -219,22 +219,22 @@ p {
 
 /* Light Mode specific refinements for Sidebar Active State */
 [data-theme="light"] .nav-link:hover {
-  background-color: #F4F4F5;
-  color: #09090B;
+  background-color: var(--bg-hover);
+  color: var(--text-main);
 }
 
 [data-theme="light"] .nav-link.active {
-  background-color: #F4F4F5;
-  color: #09090B;
+  background-color: var(--bg-hover);
+  color: var(--text-main);
   font-weight: 600;
 }
 
 [data-theme="light"] .nav-link.active::before {
-  background-color: #065F46; /* Deep Spruce accent in light mode */
+  background-color: #21405F; /* Institutional navy accent in light mode */
 }
 
 [data-theme="light"] .nav-link.active .nav-icon {
-  color: #065F46;
+  color: #21405F;
 }
 
 .nav-badge {
@@ -243,15 +243,15 @@ p {
   font-weight: 600;
   padding: 1px 6px;
   border-radius: var(--radius-sm);
-  background: rgba(16, 185, 129, 0.1);
-  color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(76, 123, 168, 0.1);
+  color: #7098C0;
+  border: 1px solid rgba(76, 123, 168, 0.2);
 }
 
 [data-theme="light"] .nav-badge {
-  background: rgba(6, 95, 70, 0.08);
-  color: #065F46;
-  border: 1px solid rgba(6, 95, 70, 0.2);
+  background: rgba(33, 64, 95, 0.08);
+  color: #21405F;
+  border: 1px solid rgba(33, 64, 95, 0.2);
 }
 
 /* Sidebar Footer */
@@ -370,7 +370,7 @@ p {
   left: calc(100% + 12px);
   top: 50%;
   transform: translateY(-50%);
-  background: var(--bg-surface-elevated, #18181B);
+  background: var(--bg-surface-elevated, #21262F);
   color: var(--text-main);
   font-family: var(--font-sans);
   font-size: 0.75rem;
@@ -445,7 +445,7 @@ p {
 
 .sidebar-toggle-btn:hover {
   background-color: var(--zinc-800);
-  color: #FAFAFA;
+  color: #F8F7F4;
   border-color: var(--zinc-700);
 }
 
@@ -1074,16 +1074,16 @@ p {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   font-weight: 600;
-  background: rgba(16, 185, 129, 0.08);
+  background: rgba(76, 123, 168, 0.08);
   color: var(--accent-500);
-  border: 1px solid rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(76, 123, 168, 0.18);
   font-variant-numeric: tabular-nums;
 }
 
 [data-theme="light"] .version-badge {
-  background: rgba(6, 95, 70, 0.06);
-  color: #065F46;
-  border-color: rgba(6, 95, 70, 0.18);
+  background: rgba(33, 64, 95, 0.06);
+  color: #21405F;
+  border-color: rgba(33, 64, 95, 0.18);
 }
 
 /* ===== Onboarding Overlay ===== */
@@ -1274,20 +1274,15 @@ p {
   background-color: var(--bg-hover);
 }
 
-/* ===== Login Background Animation ===== */
-@keyframes gridPulse {
-  0%, 100% { opacity: 0.03; }
-  50% { opacity: 0.07; }
-}
-
+/* ===== Login Background ===== */
 .login-grid-bg {
   position: absolute;
   inset: 0;
-  background-image: 
+  background-image:
     linear-gradient(var(--border-light) 1px, transparent 1px),
     linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
   background-size: 48px 48px;
-  animation: gridPulse 8s ease-in-out infinite;
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
 }
@@ -1299,7 +1294,7 @@ p {
   transform: translate(-50%, -50%);
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(76, 123, 168, 0.035) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -1546,15 +1541,14 @@ textarea:focus-visible,
     linear-gradient(var(--border-light) 1px, transparent 1px),
     linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
   background-size: 48px 48px;
-  opacity: 0.35;
+  opacity: 0.12;
   animation: fadeIn 1.2s ease both;
 }
 
 .login-gradient-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  animation: pulseGlow 4s ease-in-out infinite;
+  filter: blur(90px);
 }
 
 .login-gradient-orb-1 {
@@ -1563,7 +1557,7 @@ textarea:focus-visible,
   top: 10%;
   left: 15%;
   background: var(--accent-500);
-  opacity: 0.08;
+  opacity: 0.06;
 }
 
 .login-gradient-orb-2 {
@@ -1571,9 +1565,8 @@ textarea:focus-visible,
   height: 280px;
   bottom: 15%;
   right: 10%;
-  background: var(--green-500);
-  opacity: 0.06;
-  animation-delay: 2s;
+  background: var(--accent-500);
+  opacity: 0.04;
 }
 
 .login-card {

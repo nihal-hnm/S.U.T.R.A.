@@ -34,12 +34,12 @@ import {
 
 // ── Firebase Configuration ───────────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            || 'TODO',
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN        || 'TODO',
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID         || 'TODO',
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET     || 'TODO',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID|| 'TODO',
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID             || 'TODO',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'TODO',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'TODO',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'TODO',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'TODO',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || 'TODO',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || 'TODO',
 };
 
 // ── Configured check: all required fields must be present and non-placeholder ─
@@ -85,10 +85,10 @@ export { app, auth, firestore, storage, googleProvider, onAuthStateChanged };
 
 // ── Firestore Collection Name Constants ──────────────────────────────────────
 export const COLLECTIONS = {
-  USERS:              'users',
-  PROJECTS:           'projects',
-  SOURCES:            'sources',
-  ANALYSES:           'analyses',
-  OUTPUTS:            'outputs',
+  USERS: 'users',
+  PROJECTS: 'projects',
+  SOURCES: 'sources',
+  ANALYSES: 'analyses',
+  OUTPUTS: 'outputs',
   GENERATION_HISTORY: 'generation_history',
 };
